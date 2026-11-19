@@ -1,0 +1,10 @@
+/vendor/
+/state/
+/config.toml
+/*.service
+*.db
+*.db.new
+*.db.old
+*.db.#*
+*.log
+__pycache__/

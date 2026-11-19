@@ -1,0 +1,18 @@
+[Unit]
+Description=ToastStunt LLM Lab
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=exec
+WorkingDirectory=@LAB_PATH@
+ExecStart=/bin/sh ./restart.sh
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGTERM
+KillMode=mixed
+TimeoutStopSec=90
+UMask=0077
+
+[Install]
+WantedBy=default.target

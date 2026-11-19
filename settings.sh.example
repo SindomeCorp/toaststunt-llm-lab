@@ -1,0 +1,12 @@
+# Run from the repository directory. Copy an existing game's checkpoint only
+# after getting a consistent snapshot. This is read on the first setup only.
+MOO_PORT=7788 MOO_SEED_DB=/absolute/path/to/world.db ./setup.sh --server-only
+
+# Move the checkout to the latest upstream commit, build, then restart.
+./update-toaststunt.sh
+
+# Use a specific upstream tag or commit instead.
+./update-toaststunt.sh v2.8.0
+
+# Run a separate lab from a fresh checkout on a different port.
+TOASTSTUNT_LAB_INSTANCE=test MOO_PORT=7789 ./setup.sh --register-codex

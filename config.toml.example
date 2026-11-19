@@ -1,0 +1,4 @@
+[mcp_servers.toaststunt_llm_lab]
+command = "python3"
+args = ["/absolute/path/to/toaststunt-llm-lab/launch-mcp.py"]
+startup_timeout_sec = 20
