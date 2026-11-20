@@ -32,6 +32,35 @@ systemctl --user restart toaststunt-llm-lab.service
 
 For startup at boot before login, enable lingering for the service account with `loginctl enable-linger "$USER"` if the host requires it.
 
+## Test on a Linux desktop
+
+On an Ubuntu or Debian desktop, install the prerequisites above, then follow the quick start as your normal user, without `sudo`. Setup starts the lab immediately and enables startup at login. The service restarts the MOO after a failure; a deliberate stop does not trigger a restart.
+
+After setup, check the service and test the MCP connection:
+
+```sh
+systemctl --user status toaststunt-llm-lab.service
+python3 verify-mcp.py
+```
+
+Start a fresh Codex chat in this checkout and ask it to use `toaststunt_llm_lab` to inspect the world. For a direct login, connect a MOO client to `127.0.0.1:7778` and use the `Wizard` or `LabProgrammer` login from `state/credentials.json`. Keep that file private.
+
+When you are done testing, stop the lab and disable automatic startup:
+
+```sh
+./disable-service.sh
+```
+
+The stopped service will not restart after a failure or at login. This keeps the installed service, world, credentials, and Codex registration. If you manually start the service again, its `Restart=on-failure` policy applies while it is running. To run without systemd or automatic restarts, use `./restart.sh` in a terminal after disabling the service; press Ctrl+C to stop. Despite its name, this wrapper loads the latest checkpoint and runs the engine once.
+
+To restore the installed service's automatic startup and start it again:
+
+```sh
+systemctl --user enable --now toaststunt-llm-lab.service
+```
+
+Rerunning `./setup.sh` also enables and restarts the service. `./update-toaststunt.sh` starts or restarts it, so avoid these commands when you want the lab to stay stopped.
+
 ## Run a second lab on the same host
 
 Give a fresh checkout a distinct instance name and port so both the systemd service and the Codex entry remain separate.
@@ -82,6 +111,21 @@ Use the actual port and programmer object. `configure-mcp.py` prompts for the pr
 ```
 
 Each revision builds in its own directory. The service switches to the built binary only after the build succeeds, then restarts and loads the newest checkpoint. Before crossing engine versions, keep a separate database snapshot for rollback. An older engine may be unable to load a checkpoint saved by a newer engine.
+
+## Uninstall
+
+Run this from the checkout before moving or deleting it:
+
+```sh
+./disable-service.sh --remove
+codex mcp remove toaststunt_llm_lab
+```
+
+The script stops and disables the user service, removes its installed unit file, and reloads systemd. It detects this checkout's saved instance name and refuses to change a service belonging to another checkout. It preserves the repository, `vendor/`, and all of `state/`, including the world and credentials. The Codex command removes the registration created by `--register-codex`; skip it if you never registered the lab. Start a fresh Codex chat afterward.
+
+For a named instance, use its Codex name instead: instance `test` uses `codex mcp remove toaststunt_llm_lab_test`. Instance names containing hyphens use underscores in the Codex name. If you manually copied the generated configuration into another client, remove that client's lab entry too.
+
+After stopping the service, archive the entire `state/` directory if you want to keep the world and its credentials. You can then delete the checkout to remove the remaining local files. No system-wide packages are removed. Lingering is a user-wide setting, so the script leaves it alone; if you enabled it only for this lab and no longer need other user services running while logged out, you can undo it with `loginctl disable-linger "$USER"`.
 
 ## Manual runtime layout on other operating systems
 
