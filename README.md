@@ -16,7 +16,9 @@ The setup script fetches the latest commit from the default branch of [ToastStun
 
 > **Optional wizard access:** Log in as `Wizard` and set the `LabProgrammer` account's `.wizard` property to `1` if you want it to be a wizard. The MCP connection will then have wizard privileges.
 
-Setup generates both login passwords in the private `state/credentials.json` file, checkpoints the installation, verifies MCP, and registers `toaststunt_llm_lab` in Codex. Omit `--register-codex` to skip modifying your Codex user configuration. You can merge the generated `config.toml` into that configuration later.
+Setup updates the default Wizard password and stores the new LabProgrammer password in the private `state/credentials.json` file, checkpoints the installation, verifies MCP, and registers `toaststunt_llm_lab` in Codex. Omit `--register-codex` to skip modifying your Codex user configuration. You can merge the generated `config.toml` into that configuration later.
+
+> **Wizard login:** If you want to log in as a wizard, run `cat state/credentials.json` to get the new Wizard password.
 
 Rerunning setup fetches the latest versions again, rebuilds the engine, refreshes MCP dependencies when its revision changes, and restarts the service. Existing world data and accounts are preserved; the latest ToastCore database is used only when seeding a fresh world. Setup stops if a vendor checkout has local source changes.
 
