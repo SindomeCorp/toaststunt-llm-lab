@@ -64,43 +64,33 @@ fi
 printf '%s\n' "$instance" > state/instance
 
 checkout() {
-    local name=$1 url=$2 revision=$3 update=${4:-false} dir="vendor/$1"
+    local name=$1 url=$2 revision=${3:-HEAD} dir="vendor/$1"
     if [[ ! -d "$dir/.git" ]]; then
         git clone --no-checkout -- "$url" "$dir"
-        git -C "$dir" checkout --detach "$revision"
     elif [[ -n $(git -C "$dir" status --porcelain --untracked-files=no) ]]; then
         echo "$dir has source changes. Inspect it before continuing." >&2
         exit 1
-    elif [[ $(git -C "$dir" rev-parse --verify HEAD) != "$revision" ]]; then
-        if [[ $update != true ]]; then
-            echo "$dir differs from the pinned revision. Inspect it before continuing." >&2
-            exit 1
-        fi
-        if ! git -C "$dir" cat-file -e "$revision^{commit}" 2>/dev/null; then
-            git -C "$dir" fetch --no-tags -- "$url" "$revision"
-        fi
-        git -C "$dir" checkout --detach "$revision"
     fi
+    git -C "$dir" fetch --no-tags -- "$url" "$revision"
+    git -C "$dir" checkout --detach FETCH_HEAD
 }
 
-engine_revision=2152ad4f6b57e82989c4fa110fc1ce70278f0cf7
-if [[ -s state/engine-revision ]]; then
-    engine_revision=$(cat state/engine-revision)
-fi
-checkout toaststunt https://github.com/lisdude/toaststunt.git "$engine_revision"
-checkout toastcore https://github.com/lisdude/toastcore.git 4b6a94d45e7bc5e207682204cd8047992c0af8e3
+checkout toaststunt https://github.com/lisdude/toaststunt.git
+engine_revision=$(git -C vendor/toaststunt rev-parse HEAD)
+checkout toastcore https://github.com/lisdude/toastcore.git
 moo_mcp_source=${MOO_MCP_SOURCE:-https://github.com/SindomeCorp/moo-mcp.git}
-moo_mcp_revision=${MOO_MCP_REVISION:-c5d2536e3b8396b6f653bb8477c1ab8dc75a4978}
-if [[ ! $moo_mcp_revision =~ ^[0-9a-f]{40}$ ]]; then
+if [[ -n ${MOO_MCP_REVISION:-} && ! $MOO_MCP_REVISION =~ ^[0-9a-f]{40}$ ]]; then
     echo "MOO_MCP_REVISION must be a full commit SHA." >&2
     exit 1
 fi
-checkout moo-mcp "$moo_mcp_source" "$moo_mcp_revision" true
+checkout moo-mcp "$moo_mcp_source" "${MOO_MCP_REVISION:-HEAD}"
+moo_mcp_revision=$(git -C vendor/moo-mcp rev-parse HEAD)
 if [[ ! -f vendor/moo-mcp/config/toaststunt-llm-lab.tools.json ]]; then
     echo "The selected moo-mcp revision does not contain the ToastStunt lab profile." >&2
     exit 1
 fi
 ./build-engine.sh "$engine_revision"
+printf '%s\n' "$engine_revision" > state/engine-revision
 if [[ ! -d vendor/moo-mcp/node_modules/@modelcontextprotocol/sdk ]] ||
     [[ $(cat state/moo-mcp-deps 2>/dev/null || true) != "$moo_mcp_revision" ]]; then
     npm --prefix vendor/moo-mcp ci --no-audit --no-fund
@@ -174,7 +164,8 @@ systemctl --user daemon-reload
 if [[ $server_only == true && ! -e state/mcp-installed ]]; then
     touch state/server-only
 fi
-systemctl --user enable --now "$unit"
+systemctl --user enable "$unit"
+systemctl --user restart "$unit"
 if [[ $server_only == false ]]; then
     if [[ -e state/server-only ]]; then
         echo "This lab used --server-only. Follow the manual MCP setup in README.md." >&2

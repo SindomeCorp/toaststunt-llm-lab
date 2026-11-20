@@ -12,7 +12,13 @@ cd toaststunt-llm-lab
 ./setup.sh --register-codex
 ```
 
-The setup script clones pinned versions of ToastStunt, ToastCore, and the MCP server into `vendor/`. It builds ToastStunt, seeds the database, installs and enables the user service, and creates a non-wizard `LabProgrammer` with the MCP feature. It generates both login passwords in the private `state/credentials.json` file, checkpoints the installation, verifies MCP, and registers `toaststunt_llm_lab` in Codex. Omit `--register-codex` to skip modifying your Codex user configuration. You can merge the generated `config.toml` into that configuration later.
+The setup script fetches the latest commit from the default branch of [ToastStunt](https://github.com/lisdude/toaststunt), [ToastCore](https://github.com/lisdude/toastcore), and [SindomeCorp/moo-mcp](https://github.com/SindomeCorp/moo-mcp) into `vendor/`. It builds ToastStunt, seeds the database, installs and enables the user service, and creates a non-wizard `LabProgrammer` with the MCP feature.
+
+> **Optional wizard access:** Log in as `Wizard` and set the `LabProgrammer` account's `.wizard` property to `1` if you want it to be a wizard. The MCP connection will then have wizard privileges.
+
+Setup generates both login passwords in the private `state/credentials.json` file, checkpoints the installation, verifies MCP, and registers `toaststunt_llm_lab` in Codex. Omit `--register-codex` to skip modifying your Codex user configuration. You can merge the generated `config.toml` into that configuration later.
+
+Rerunning setup fetches the latest versions again, rebuilds the engine, refreshes MCP dependencies when its revision changes, and restarts the service. Existing world data and accounts are preserved; the latest ToastCore database is used only when seeding a fresh world. Setup stops if a vendor checkout has local source changes.
 
 The lab launcher runs the standard `moo-mcp/src/index.js` entry point with the shipped `config/toaststunt-llm-lab.tools.json` profile. To test a different committed server revision, set `MOO_MCP_SOURCE` to a repository URL or absolute checkout path and `MOO_MCP_REVISION` to its commit SHA before running setup.
 
