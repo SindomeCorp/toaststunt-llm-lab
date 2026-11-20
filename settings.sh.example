@@ -1,8 +1,11 @@
-# Run from the repository directory. Copy an existing game's checkpoint only
-# after getting a consistent snapshot. This is read on the first setup only.
+# Command examples, not a configuration file. Run each example separately
+# from the repository directory, as needed.
+
+# Seed a fresh checkout from a consistent checkpoint of an existing game.
+# Omit MOO_SEED_DB on later runs and keep using --server-only.
 MOO_PORT=7788 MOO_SEED_DB=/absolute/path/to/world.db ./setup.sh --server-only
 
-# Move the checkout to the latest upstream commit, build, then restart.
+# Update only the engine to origin/master, build, then restart the service.
 ./update-toaststunt.sh
 
 # Use a specific upstream tag or commit instead.
